@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "opentelemetry/nostd/shared_ptr.h"
+#include "opentelemetry/nostd/unique_ptr.h"
 
 using opentelemetry::nostd::shared_ptr;
 
@@ -96,6 +97,15 @@ TEST(SharedPtrTest, MoveConstructionFromStdSharedPtr)
   EXPECT_EQ(ptr2.get(), value);
 }
 
+TEST(SharedPtrTest, MoveConstructionFromNoStdUniquePtr)
+{
+  opentelemetry::nostd::unique_ptr<int> value(new int{123});
+  auto p = value.get();
+  shared_ptr<int> ptr{std::move(value)};
+  EXPECT_EQ(value.get(), nullptr);  // NOLINT
+  EXPECT_EQ(ptr.get(), p);
+}
+
 TEST(SharedPtrTest, Destruction)
 {
   bool was_destructed{};
@@ -123,6 +133,10 @@ TEST(SharedPtrTest, Assignment)
   std::shared_ptr<int> ptr3(value3);
   ptr1 = ptr3;
   EXPECT_EQ(ptr1.get(), value3);
+
+  ptr1 = std::move(ptr1);
+  EXPECT_EQ(ptr1.get(), value3);
+
 }
 
 TEST(SharedPtrTest, BoolConversionOpertor)
